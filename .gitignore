@@ -1,0 +1,20 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local application state
+task_allocation.db
+task_allocation.db-*
+.streamlit/secrets.toml
+
+# Local tooling and logs
+.vscode/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
