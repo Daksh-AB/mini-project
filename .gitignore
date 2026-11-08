@@ -18,3 +18,5 @@ task_allocation.db-*
 # OS files
 .DS_Store
 Thumbs.db
+
+backups/
