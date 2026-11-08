@@ -84,6 +84,20 @@ class AuthTests(unittest.TestCase):
             1,
         )
 
+    def test_reset_password_secret_updates_existing_account(self):
+        with patch.dict(os.environ, {
+            "TASK_APP_USERNAME": "manager",
+            "TASK_APP_PASSWORD": "old-password",
+            "TASK_APP_RESET_PASSWORD": "new-password",
+        }):
+            initialize_auth(self.connection)
+        self.assertIsNotNone(
+            authenticate_user("manager", "new-password", self.connection)
+        )
+        self.assertIsNone(
+            authenticate_user("manager", "old-password", self.connection)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
