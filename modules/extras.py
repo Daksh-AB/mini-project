@@ -185,10 +185,10 @@ def ensure_default_user(conn=None):
         count = db.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         if count:
             return
-        username = os.getenv("TASK_APP_USERNAME", DEFAULT_USERNAME)
-        password = os.getenv("TASK_APP_PASSWORD", DEFAULT_PASSWORD)
+        username = _configured_value("TASK_APP_USERNAME", DEFAULT_USERNAME)
+        password = _configured_value("TASK_APP_PASSWORD", DEFAULT_PASSWORD)
         db.execute(
-            "INSERT INTO users (username, password_hash, role, must_change, created_at) "
+            "INSERT OR IGNORE INTO users (username, password_hash, role, must_change, created_at) "
             "VALUES (?, ?, 'manager', ?, ?)",
             (
                 username,
@@ -197,6 +197,18 @@ def ensure_default_user(conn=None):
                 _now(),
             ),
         )
+
+
+def _configured_value(name, default):
+    """Read deployment configuration from env vars or Streamlit secrets."""
+    value = os.getenv(name)
+    if value:
+        return value
+    try:
+        import streamlit as st
+        return st.secrets.get(name, default)
+    except Exception:
+        return default
 
 
 def authenticate(username, password, conn=None):

@@ -72,6 +72,18 @@ class AuthTests(unittest.TestCase):
         self.assertTrue(deleted)
         self.assertEqual(len(list_users(self.connection)), 1)
 
+    def test_default_user_initialization_is_idempotent(self):
+        with patch.dict(os.environ, {
+            "TASK_APP_USERNAME": "manager",
+            "TASK_APP_PASSWORD": "a-secure-password",
+        }):
+            initialize_auth(self.connection)
+            initialize_auth(self.connection)
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+            1,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
