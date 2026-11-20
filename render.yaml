@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: human-aware-task-allocation
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT
+    envVars:
+      - key: TASK_APP_DATA_DIR
+        value: /var/data
+      - key: TASK_APP_USERNAME
+        sync: false
+      - key: TASK_APP_PASSWORD
+        sync: false
+    disk:
+      name: task-allocation-data
+      mountPath: /var/data
+      sizeGB: 1

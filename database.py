@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -7,11 +8,21 @@ SCHEMA_VERSION = 2
 
 
 def get_connection():
-    connection = sqlite3.connect(DB_PATH, timeout=30)
+    database_path = get_database_path()
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(database_path, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA journal_mode = WAL")
     return connection
+
+
+def get_database_path():
+    """Return the local or deployment-mounted SQLite path."""
+    configured_directory = os.getenv("TASK_APP_DATA_DIR")
+    if configured_directory:
+        return Path(configured_directory) / "task_allocation.db"
+    return DB_PATH
 
 
 def add_column_if_missing(cursor, table, column, definition):

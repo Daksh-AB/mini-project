@@ -1,4 +1,5 @@
 import sqlite3
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -23,6 +24,14 @@ class DatabaseTests(unittest.TestCase):
                 )
             finally:
                 connection.close()
+
+    def test_database_path_can_use_deployment_data_directory(self):
+        with self.subTest("deployment data directory"):
+            with patch.dict(os.environ, {"TASK_APP_DATA_DIR": str(self.db_path.parent)}):
+                self.assertEqual(
+                    database.get_database_path(),
+                    self.db_path.parent / "task_allocation.db",
+                )
 
     def test_init_db_runs_extra_schema_migrations(self):
         with patch.object(database, "DB_PATH", self.db_path):

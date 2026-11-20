@@ -96,6 +96,15 @@ Backups are written to `backups/`. To choose a path explicitly:
 python scripts/backup_database.py backups\before-migration.db
 ```
 
+## Deploy on Render with persistent storage
+
+The repository includes `render.yaml` for a single-instance Render deployment.
+It mounts a persistent disk at `/var/data` and stores `task_allocation.db` there.
+Create the service from the repository, set `TASK_APP_USERNAME` and
+`TASK_APP_PASSWORD` as secret environment variables, and deploy. The persistent
+disk is intended for a small team; use PostgreSQL before running multiple app
+instances.
+
 ## Main project areas
 
 | Path | Purpose |
