@@ -51,6 +51,20 @@ run; the rest of the workspace remains usable.
 The app creates or upgrades `task_allocation.db` on startup. Keep this file
 private and back it up before making schema changes.
 
+## Use PostgreSQL in deployment
+
+Set `DATABASE_URL` to a PostgreSQL connection string (for example, a Neon
+pooled URL) in the deployment platform's secrets. When `DATABASE_URL` is set,
+the app uses PostgreSQL; otherwise it keeps using local SQLite. To copy an
+existing local database into the PostgreSQL database, set `DATABASE_URL` in
+PowerShell and run:
+
+```powershell
+python scripts/migrate_sqlite_to_postgres.py
+```
+
+Never commit the connection string or place it in `.env` files tracked by Git.
+
 ## Train the completion-time model
 
 Generate the included synthetic training data when needed:

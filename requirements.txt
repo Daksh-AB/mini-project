@@ -4,3 +4,4 @@ plotly==7.1.0
 joblib==1.6.0
 scikit-learn==1.9.1
 numpy==2.5.4
+psycopg[binary]>=3.2,<4
