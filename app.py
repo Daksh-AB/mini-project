@@ -37,6 +37,7 @@ from modules.reallocation import (
 from modules.prediction import MODEL_PATH, predict_completion_time
 from modules.modeling import model_version
 from modules.prediction_history import get_prediction_records, record_prediction
+from modules.reports import PERIODS, build_report, report_csv_frames
 from modules.health import check_health
 from modules.extras import (
     compare_strategies,
@@ -923,6 +924,7 @@ st.sidebar.divider()
 available_pages = [
     "Dashboard",
     "Completion-Time Prediction",
+    "Reports",
     "Analytics & Performance Evaluation",
 ]
 if st.session_state.get("user", {}).get("role") == "manager":
@@ -2473,6 +2475,82 @@ elif page == "Completion-Time Prediction":
 # ============================================================
 # ANALYTICS & PERFORMANCE EVALUATION
 # ============================================================
+
+elif page == "Reports":
+    st.title("Reports")
+    st.write(
+        "Review operational activity for the current weekly, monthly, or "
+        "quarterly reporting period."
+    )
+
+    selected_period = st.segmented_control(
+        "Reporting period",
+        options=list(PERIODS),
+        default="Weekly",
+        key="report_period",
+    )
+    report_period = selected_period or "Weekly"
+    connection = get_connection()
+    report = build_report(connection, report_period)
+    connection.close()
+
+    st.caption(
+        f"Period: {report['start'].date().isoformat()} through "
+        f"{(report['end'] - pd.Timedelta(days=1)).date().isoformat()}"
+    )
+
+    summary = report["summary"]
+    metric1, metric2, metric3, metric4 = st.columns(4)
+    metric1.metric("Assignments", summary["assignments"])
+    metric2.metric("Reallocations", summary["reallocations"])
+    metric3.metric("Disturbances", summary["disturbances"])
+    metric4.metric("Predictions", summary["predictions"])
+
+    st.subheader("Performance summary")
+    p1, p2, p3 = st.columns(3)
+    p1.metric("Current task completion", f"{summary['current_task_completion_rate']:.1f}%")
+    p2.metric("Current average utilization", f"{summary['current_average_utilization']:.1f}%")
+    p3.metric(
+        "Model MAE",
+        f"{summary['model_mae_hours']:.2f} hours"
+        if summary["model_mae_hours"] is not None else "No observed data",
+    )
+    st.caption(
+        "Completion and utilization are current snapshots. Event counts are "
+        "filtered to the selected period."
+    )
+
+    event_rows = pd.DataFrame({
+        "Event": ["Assignments", "Reallocations", "Disturbances", "Predictions"],
+        "Count": [summary["assignments"], summary["reallocations"],
+                   summary["disturbances"], summary["predictions"]],
+    })
+    fig = px.bar(event_rows, x="Event", y="Count", title=f"Activity — {report_period}",
+                 color_discrete_sequence=[BRAND])
+    apply_chart_theme(fig)
+    st.plotly_chart(fig, width="stretch")
+
+    frames = report_csv_frames(report)
+    st.subheader("Download report data")
+    download_columns = st.columns(len(frames))
+    for column, (name, frame) in zip(download_columns, frames.items()):
+        column.download_button(
+            f"Download {name}.csv",
+            data=frame.to_csv(index=False).encode("utf-8"),
+            file_name=f"{report_period.lower()}_{name}.csv",
+            mime="text/csv",
+            key=f"download_report_{name}",
+            width="stretch",
+        )
+
+    for name, frame in frames.items():
+        if name == "summary":
+            continue
+        with st.expander(f"{name.title()} records ({len(frame)})"):
+            if frame.empty:
+                st.info(f"No {name} records in this period.")
+            else:
+                st.dataframe(frame, width="stretch", hide_index=True)
 
 elif page == "Analytics & Performance Evaluation":
     st.title("Analytics & Performance Evaluation")

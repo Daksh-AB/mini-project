@@ -76,6 +76,12 @@ enter its `Actual Hours`. The Analytics page then compares model MAE with the
 original estimate MAE using only tasks that have both a recorded prediction and
 an actual duration.
 
+The Reports page provides Weekly, Monthly, and Quarterly views. Event counts
+use stored assignment, reallocation, disturbance, and prediction timestamps.
+Current task completion and employee utilization are labeled snapshots because
+older records do not include historical state timestamps. Each report section
+can be downloaded as CSV.
+
 ## Run tests
 
 ```powershell
